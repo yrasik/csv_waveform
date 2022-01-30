@@ -3,6 +3,9 @@
 
 #include "lua/lua.hpp"
 
+extern QTextStream         *plog;
+
+
 MainWindow::MainWindow(QWidget *parent) :
   QMainWindow(parent),
   ui(new Ui::MainWindow)
@@ -215,8 +218,8 @@ void MainWindow::addRandomGraph()
 {
   lua_State *L = luaL_newstate();
   luaL_openlibs( L );
-/*
-  err = luaL_loadfile( L, filename.toLocal8Bit().data() );
+
+  err = luaL_loadfile( L, "../etc/loadfile.lua" /*filename.toLocal8Bit().data()*/ );
   if ( err != LUA_OK )
   {
     QString err = codec->toUnicode("WARNING: Îרטבךא ג פאיכו '") +
@@ -227,7 +230,23 @@ void MainWindow::addRandomGraph()
     return;
   }
   lua_pcall(L, 0, 0, 0);
-*/
+
+  /* push functions and arguments */
+  lua_getglobal(L, "file_supported");  /* function to be called */
+
+  /* do the call (0 arguments, 1 result) */
+  if (lua_pcall(L, 0, 1, 0) != 0)
+    error(L, "error running function `f': %s", lua_tostring(L, -1));
+
+  /* retrieve result */
+  if (!lua_isstring(L, -1))
+    error(L, "function `f' must return a number");
+  char *c_filter = lua_tostring(L, -1);
+  lua_pop(L, 1);  /* pop returned value */
+
+  QString filter = QString::fromLocal8Bit(c_filter);
+
+
 /*
   lua_getglobal(L, "x_Format_mm");
   if( lua_type(L, -1) == LUA_TNUMBER )
@@ -238,7 +257,7 @@ void MainWindow::addRandomGraph()
   fileName = QFileDialog::getOpenFileName(this,
    tr("Open Image"), "/home/jana", tr("Comma-Separated Values (*.csv);;\
                                        Delimiter-Separated Values files (*.dsv);;\
-                                       Tab Separated Values files (*.tsv)"));
+                                       Tab Separated Values files (*.tsv)")  );
 
 
 
