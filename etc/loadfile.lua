@@ -19,16 +19,69 @@
 ]==]
 
 
+local function split(instr, sep)
+  local t = {}
+  for str in string.gmatch(instr, "([^"..sep.."]+)") do
+    table.insert(t, str)
+  end
+  return t
+end  
+
+
+local function replace(str, what, with)
+  what = what:gsub("[%(%)%.%+%-%*%?%[%]%^%$%%]", "%%%1")
+  with = with:gsub("[%%]", "%%%%")
+  return str:gsub(what, with)
+end  
+
+
+local function trim(instr)
+  return string.gsub(instr, "^%s*(.-)%s*$", "%1")
+end
+
+
+
+
 function file_supported()
   return "Comma-Separated Values (*.csv);;\
-          Delimiter-Separated Values files (*.dsv);;\
-          Tab Separated Values files (*.tsv)"
+          Delimiter-Separated Values (*.dsv);;\
+          Tab Separated Values (*.tsv);;\
+          Lua Table (*.lua)"
 end
 
+
+records = {} -- Глобальный массив для waveform
 
 function open(file_name)
+  local fin = io.open(file_name,"r");
+  if ( fin == nil ) then
+    --flog:close()
+    --os.exit(-1)
+    return -1, 'ERROR: Open file'
+  end
 
+  for l in fin:lines() do 
+    local fields = trim(l)
+    fields = fields:gsub('%s+', '')
+    fields = split(fields, ',')
+
+    if( (fields[1] ~= nil) and (fields[2] ~= nil) ) then
+      fields[1] = tonumber(fields[1])
+      fields[2] = tonumber(fields[2])
+      if(type(fields[2]) == 'number') then
+        records[#records + 1] = {fields[1], fields[2]}
+      end
+    end
+  end
+
+  fin:close()
+  return 0, #records
 end
+
+function get_record(num)
+  return records[num][1], records[num][2]
+end
+
 
 
 

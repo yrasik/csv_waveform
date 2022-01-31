@@ -4,6 +4,7 @@
 #include "lua/lua.hpp"
 
 extern QTextStream         *plog;
+extern QTextCodec          *codec;
 
 
 MainWindow::MainWindow(QWidget *parent) :
@@ -219,11 +220,11 @@ void MainWindow::addRandomGraph()
   lua_State *L = luaL_newstate();
   luaL_openlibs( L );
 
-  err = luaL_loadfile( L, "../etc/loadfile.lua" /*filename.toLocal8Bit().data()*/ );
+  int err = luaL_loadfile( L, "../etc/loadfile.lua" /*filename.toLocal8Bit().data()*/ );
   if ( err != LUA_OK )
   {
     QString err = codec->toUnicode("WARNING: Îרטבךא ג פאיכו '") +
-                  filename + QObject::tr("' :") +
+                  "../etc/loadfile.lua"/*filename*/ + QObject::tr("' :") +
                   codec->toUnicode( lua_tostring(L, -1) );
     *plog << err << endl;
     lua_close( L );
@@ -236,16 +237,15 @@ void MainWindow::addRandomGraph()
 
   /* do the call (0 arguments, 1 result) */
   if (lua_pcall(L, 0, 1, 0) != 0)
-    error(L, "error running function `f': %s", lua_tostring(L, -1));
+    luaL_error(L, "error running function `f': %s", lua_tostring(L, -1));
 
   /* retrieve result */
   if (!lua_isstring(L, -1))
-    error(L, "function `f' must return a number");
-  char *c_filter = lua_tostring(L, -1);
+    luaL_error(L, "function `f' must return a number");
+  const char *c_filter = lua_tostring(L, -1);
   lua_pop(L, 1);  /* pop returned value */
 
   QString filter = QString::fromLocal8Bit(c_filter);
-
 
 /*
   lua_getglobal(L, "x_Format_mm");
@@ -255,17 +255,16 @@ void MainWindow::addRandomGraph()
 
   QString fileName;
   fileName = QFileDialog::getOpenFileName(this,
-   tr("Open Image"), "/home/jana", tr("Comma-Separated Values (*.csv);;\
-                                       Delimiter-Separated Values files (*.dsv);;\
-                                       Tab Separated Values files (*.tsv)")  );
-
-
+     tr("Open Waveform"), "../trash/*", filter);
 
 
   if (fileName.isEmpty())
-    return;
-  else
   {
+    lua_close( L );
+    return;
+  }
+
+/*
     QFile file(fileName);
     if ( !file.open(QIODevice::ReadOnly))
     {
@@ -273,13 +272,68 @@ void MainWindow::addRandomGraph()
        file.errorString());
        return;
     }
+*/
+*plog << fileName << endl;
+  /* push functions and arguments */
+  lua_getglobal(L, "open");  /* function to be called */
+  lua_pushstring(L, fileName.toStdString().c_str() );   /* push 1st argument */
+  /* do the call (1 arguments, 2 result) */
+  if (lua_pcall(L, 1, 2, 0) != 0)
+    luaL_error(L, "error running function `f': %s", lua_tostring(L, -1));
+
+
+  /* retrieve result */
+  if (!lua_isinteger(L, 1))
+    luaL_error(L, "function `f' must return a integer");
+  int result = lua_tointeger(L, 1);
+
+  if(result < 0)
+  {
+    /* retrieve result */
+    if (!lua_isstring(L, 2))
+      luaL_error(L, "function `f' must return a number");
+   // const char *c_filter = lua_tostring(L, -1);
+    lua_pop(L, 2);  /* pop returned value */
+    lua_close( L );
+    return;
+  }
+
+  if (!lua_isinteger(L, 2))
+    luaL_error(L, "function `f' must return a integer");
+  int size = lua_tointeger(L, 2);
+  lua_pop(L, 2);  /* pop returned value */
+
+*plog << size << endl;
+
+  QVector<double> t, v1;
+  for (int i = 0; i < size; i++)
+  {
+    /* push functions and arguments */
+    lua_getglobal(L, "get_record");  /* function to be called */
+    lua_pushinteger(L, (i + 1));   /* push 1st argument */
+    /* do the call (1 arguments, 2 result) */
+    if (lua_pcall(L, 1, 2, 0) != 0)
+      luaL_error(L, "error running function `f': %s", lua_tostring(L, -1));
+
+    /* retrieve result */
+    if (!lua_isnumber(L, 1))
+      luaL_error(L, "function `f' must return a integer");
+    t.append(lua_tonumber(L, 1));
+
+    if (!lua_isnumber(L, 2))
+      luaL_error(L, "function `f' must return a integer");
+    v1.append(lua_tonumber(L, 2));
+    lua_pop(L, 2);  /* pop returned value */
+
+//    x[i] = (i/(double)n-0.5)*10.0*xScale + xOffset;
+//    y[i] = (qSin(x[i]*r1*5)*qSin(qCos(x[i]*r2)*r4*3)+r3*qCos(qSin(x[i])*r4*2))*yScale + yOffset;
   }
 
 
 
 
 
-
+/*
   int n = 50; // number of points in graph
   double xScale = (std::rand()/(double)RAND_MAX + 0.5)*2;
   double yScale = (std::rand()/(double)RAND_MAX + 0.5)*2;
@@ -295,10 +349,12 @@ void MainWindow::addRandomGraph()
     x[i] = (i/(double)n-0.5)*10.0*xScale + xOffset;
     y[i] = (qSin(x[i]*r1*5)*qSin(qCos(x[i]*r2)*r4*3)+r3*qCos(qSin(x[i])*r4*2))*yScale + yOffset;
   }
-  
+  */
+
+
   ui->customPlot->addGraph();
   ui->customPlot->graph()->setName(QString("New graph %1").arg(ui->customPlot->graphCount()-1));
-  ui->customPlot->graph()->setData(x, y);
+  ui->customPlot->graph()->setData(t, v1);
   ui->customPlot->graph()->setLineStyle((QCPGraph::LineStyle)(std::rand()%5+1));
   if (std::rand()%100 > 50)
     ui->customPlot->graph()->setScatterStyle(QCPScatterStyle((QCPScatterStyle::ScatterShape)(std::rand()%14+1)));
