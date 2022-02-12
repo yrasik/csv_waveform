@@ -5,6 +5,10 @@
 #include <QInputDialog>
 #include "qcustomplot.h"
 
+
+#define CSV_WAVEFORM_VERSION "1.0.0a"
+
+
 namespace Ui {
 class MainWindow;
 }
@@ -35,6 +39,13 @@ private slots:
 
 private:
   Ui::MainWindow *ui;
+
+public slots:
+
+
+  // Help
+  void on_actionAbout_triggered();
+  void on_actionUsage_triggered();
 };
 
 #endif // MAINWINDOW_H

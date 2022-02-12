@@ -21,11 +21,11 @@ MainWindow::MainWindow(QWidget *parent) :
   ui->customPlot->axisRect()->setupFullAxesBox();
   
   ui->customPlot->plotLayout()->insertRow(0);
-  QCPTextElement *title = new QCPTextElement(ui->customPlot, "Interaction Example", QFont("sans", 17, QFont::Bold));
+  QCPTextElement *title = new QCPTextElement(ui->customPlot, "<Waveform Name>", QFont("sans", 10, QFont::Bold));
   ui->customPlot->plotLayout()->addElement(0, 0, title);
   
-  ui->customPlot->xAxis->setLabel("x Axis");
-  ui->customPlot->yAxis->setLabel("y Axis");
+  ui->customPlot->xAxis->setLabel("time, mS");
+  ui->customPlot->yAxis->setLabel("Value, V");
   ui->customPlot->legend->setVisible(true);
   QFont legendFont = font();
   legendFont.setPointSize(10);
@@ -64,7 +64,7 @@ MainWindow::MainWindow(QWidget *parent) :
   connect(ui->customPlot, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(contextMenuRequest(QPoint)));
 
 
-  connect(ui->pushButton, SIGNAL( clicked() ), this, SLOT(slot_printer(void)));
+  //connect(ui->pushButton, SIGNAL( clicked() ), this, SLOT(slot_printer(void)));
 
 
 }
@@ -105,7 +105,7 @@ void MainWindow::titleDoubleClick(QMouseEvent* event)
   {
     // Set the plot title by double clicking on it
     bool ok;
-    QString newTitle = QInputDialog::getText(this, "QCustomPlot example", "New plot title:", QLineEdit::Normal, title->text(), &ok);
+    QString newTitle = QInputDialog::getText(this, "CSV WaveForm", "New plot title:", QLineEdit::Normal, title->text(), &ok);
     if (ok)
     {
       title->setText(newTitle);
@@ -120,7 +120,7 @@ void MainWindow::axisLabelDoubleClick(QCPAxis *axis, QCPAxis::SelectablePart par
   if (part == QCPAxis::spAxisLabel) // only react when the actual axis label is clicked, not tick label or axis backbone
   {
     bool ok;
-    QString newLabel = QInputDialog::getText(this, "QCustomPlot example", "New axis label:", QLineEdit::Normal, axis->label(), &ok);
+    QString newLabel = QInputDialog::getText(this, "CSV WaveForm", "New axis label:", QLineEdit::Normal, axis->label(), &ok);
     if (ok)
     {
       axis->setLabel(newLabel);
@@ -137,7 +137,7 @@ void MainWindow::legendDoubleClick(QCPLegend *legend, QCPAbstractLegendItem *ite
   {
     QCPPlottableLegendItem *plItem = qobject_cast<QCPPlottableLegendItem*>(item);
     bool ok;
-    QString newName = QInputDialog::getText(this, "QCustomPlot example", "New graph name:", QLineEdit::Normal, plItem->plottable()->name(), &ok);
+    QString newName = QInputDialog::getText(this, "CSV WaveForm", "New graph name:", QLineEdit::Normal, plItem->plottable()->name(), &ok);
     if (ok)
     {
       plItem->plottable()->setName(newName);
@@ -430,3 +430,26 @@ void MainWindow::graphClicked(QCPAbstractPlottable *plottable, int dataIndex)
 
 
 
+void MainWindow::on_actionAbout_triggered()
+{
+    QMessageBox::about(this,
+                       "CSV WaveForm",
+                       "<h2><b>CSV WaveForm</b></h2>"
+                       "<p><i>version " CSV_WAVEFORM_VERSION "</i></p>"
+                       "<p>CSV WaveForm is a GUI for visualization of timing diagrams from CSV - files. It is licensed under the "
+                       "<a href=\"https://www.gnu.org/licenses/gpl-3.0.en.html\">GNU General "
+                       "Public License, version 3.0</a>.</p>"
+                       "<p>For more info and updates, visit: "
+                       "<a href=\"https://github.com/yrasik/csv_waveform\">https://github.com/yrasik/csv_waveform</a></p>");
+}
+
+
+void MainWindow::on_actionUsage_triggered()
+{
+  QMessageBox::about(this,
+                 "Usage",
+                 "<p><b>Select the axes</b> to drag and zoom them individually;</p>"
+                 "<p><b>Double click</b> labels or legend items to set user specified strings;</p>"
+                 "<p><b>Left click</b> on graphs or legend to select graphs;</p>"
+                 "<p><b>Right click</b> for a popup menu to add/remove graphs and move the legend.</p>");
+}
