@@ -41,7 +41,8 @@ private:
   Ui::MainWindow *ui;
 
 public slots:
-
+  // File
+  void on_actionOpen_triggered();
 
   // Help
   void on_actionAbout_triggered();

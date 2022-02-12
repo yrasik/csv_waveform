@@ -331,31 +331,10 @@ void MainWindow::addRandomGraph()
 
 
 
-
-
-/*
-  int n = 50; // number of points in graph
-  double xScale = (std::rand()/(double)RAND_MAX + 0.5)*2;
-  double yScale = (std::rand()/(double)RAND_MAX + 0.5)*2;
-  double xOffset = (std::rand()/(double)RAND_MAX - 0.5)*4;
-  double yOffset = (std::rand()/(double)RAND_MAX - 0.5)*10;
-  double r1 = (std::rand()/(double)RAND_MAX - 0.5)*2;
-  double r2 = (std::rand()/(double)RAND_MAX - 0.5)*2;
-  double r3 = (std::rand()/(double)RAND_MAX - 0.5)*2;
-  double r4 = (std::rand()/(double)RAND_MAX - 0.5)*2;
-  QVector<double> x(n), y(n);
-  for (int i=0; i<n; i++)
-  {
-    x[i] = (i/(double)n-0.5)*10.0*xScale + xOffset;
-    y[i] = (qSin(x[i]*r1*5)*qSin(qCos(x[i]*r2)*r4*3)+r3*qCos(qSin(x[i])*r4*2))*yScale + yOffset;
-  }
-  */
-
-
   ui->customPlot->addGraph();
   ui->customPlot->graph()->setName(QString("New graph %1").arg(ui->customPlot->graphCount()-1));
   ui->customPlot->graph()->setData(t, v1);
-  ui->customPlot->graph()->setLineStyle((QCPGraph::LineStyle)(std::rand()%5+1));
+ // ui->customPlot->graph()->setLineStyle((QCPGraph::LineStyle)(std::rand()%5+1));
   if (std::rand()%100 > 50)
     ui->customPlot->graph()->setScatterStyle(QCPScatterStyle((QCPScatterStyle::ScatterShape)(std::rand()%14+1)));
   QPen graphPen;
@@ -363,6 +342,12 @@ void MainWindow::addRandomGraph()
   graphPen.setWidthF(std::rand()/(double)RAND_MAX*2+1);
   ui->customPlot->graph()->setPen(graphPen);
   ui->customPlot->replot();
+}
+
+
+void MainWindow::on_actionOpen_triggered()
+{
+  addRandomGraph();
 }
 
 void MainWindow::removeSelectedGraph()

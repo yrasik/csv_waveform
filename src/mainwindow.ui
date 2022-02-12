@@ -75,7 +75,7 @@
     </property>
     <addaction name="actionOpen"/>
     <addaction name="separator"/>
-    <addaction name="actionExit_2"/>
+    <addaction name="actionExit_3"/>
    </widget>
    <widget class="QMenu" name="menuHelp">
     <property name="title">
@@ -112,6 +112,11 @@
   <action name="actionUsage">
    <property name="text">
     <string>Usage</string>
+   </property>
+  </action>
+  <action name="actionExit_3">
+   <property name="text">
+    <string>Exit</string>
    </property>
   </action>
  </widget>
