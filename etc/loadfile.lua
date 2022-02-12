@@ -42,6 +42,7 @@ end
 
 
 
+
 function file_supported()
   return "Comma-Separated Values (*.csv);;\
           Delimiter-Separated Values (*.dsv);;\
@@ -51,6 +52,46 @@ end
 
 
 records = {} -- Глобальный массив для waveform
+statist = {}
+
+
+local function min_max(array)
+  local min = 0
+  local max = 0
+  
+  for i = 1, #array do
+    if (array[i] > max) then
+      max = array[i]
+    end
+  
+    if (array[i] < min) then
+      min = array[i]
+    end
+  end
+  
+  return min, max
+end
+
+
+local function mean(array)
+  local akk = 0
+
+  for i = 1, #array do
+    akk = akk + array[i]
+  end
+  
+  akk = akk/#array
+  
+  return akk
+end
+
+
+
+
+
+
+
+
 
 function open(file_name)
   local fin = io.open(file_name,"r");

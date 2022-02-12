@@ -438,3 +438,9 @@ void MainWindow::on_actionUsage_triggered()
                  "<p><b>Left click</b> on graphs or legend to select graphs;</p>"
                  "<p><b>Right click</b> for a popup menu to add/remove graphs and move the legend.</p>");
 }
+
+
+void MainWindow::on_actionExit_triggered()
+{
+  QApplication::quit();
+}

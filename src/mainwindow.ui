@@ -75,7 +75,7 @@
     </property>
     <addaction name="actionOpen"/>
     <addaction name="separator"/>
-    <addaction name="actionExit_3"/>
+    <addaction name="actionExit"/>
    </widget>
    <widget class="QMenu" name="menuHelp">
     <property name="title">
@@ -104,19 +104,9 @@
     <string>Exit</string>
    </property>
   </action>
-  <action name="actionExit_2">
-   <property name="text">
-    <string>Exit</string>
-   </property>
-  </action>
   <action name="actionUsage">
    <property name="text">
     <string>Usage</string>
-   </property>
-  </action>
-  <action name="actionExit_3">
-   <property name="text">
-    <string>Exit</string>
    </property>
   </action>
  </widget>

@@ -43,6 +43,7 @@ private:
 public slots:
   // File
   void on_actionOpen_triggered();
+  void on_actionExit_triggered();
 
   // Help
   void on_actionAbout_triggered();
