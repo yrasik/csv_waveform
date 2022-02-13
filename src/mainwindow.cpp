@@ -92,25 +92,21 @@ MainWindow::~MainWindow()
   delete ui;
 }
 
-
-void MainWindow::slot_printer(void)
+void MainWindow::on_actionPrint_triggered(void)
 {
-     QPrinter printer;
+  QPrinter printer;
 
-    QPrintDialog printDialog(&printer, this);
-    printDialog.setWindowTitle(tr("Print Document"));
+  QPrintDialog printDialog(&printer, this);
+  printDialog.setWindowTitle(tr("Print Document"));
 
-    if (printDialog.exec() != QDialog::Accepted)
-        return;
+  if (printDialog.exec() != QDialog::Accepted)
+    return;
 
-    QPixmap pixmap = QPixmap::grabWidget(ui->customPlot, 0, 0, -1, -1);
-    QPainter painter;
-    painter.begin(&printer);
-    painter.drawImage(0, 0, pixmap.toImage());
-    painter.end();
-
-
-
+  QPixmap pixmap = QPixmap::grabWidget(ui->customPlot, 0, 0, -1, -1);
+  QPainter painter;
+  painter.begin(&printer);
+  painter.drawImage(0, 0, pixmap.toImage());
+  painter.end();
 
 }
 
@@ -406,6 +402,7 @@ void MainWindow::on_actionOpen_triggered()
   addRandomGraph();
 }
 
+
 void MainWindow::removeSelectedGraph()
 {
   if (ui->customPlot->selectedGraphs().size() > 0)
@@ -415,11 +412,13 @@ void MainWindow::removeSelectedGraph()
   }
 }
 
+
 void MainWindow::removeAllGraphs()
 {
   ui->customPlot->clearGraphs();
   ui->customPlot->replot();
 }
+
 
 void MainWindow::contextMenuRequest(QPoint pos)
 {
@@ -445,6 +444,7 @@ void MainWindow::contextMenuRequest(QPoint pos)
   menu->popup(ui->customPlot->mapToGlobal(pos));
 }
 
+
 void MainWindow::moveLegend()
 {
   if (QAction* contextAction = qobject_cast<QAction*>(sender())) // make sure this slot is really called by a context menu action, so it carries the data we need
@@ -459,6 +459,7 @@ void MainWindow::moveLegend()
   }
 }
 
+
 void MainWindow::graphClicked(QCPAbstractPlottable *plottable, int dataIndex)
 {
   // since we know we only have QCPGraphs in the plot, we can immediately access interface1D()
@@ -467,8 +468,6 @@ void MainWindow::graphClicked(QCPAbstractPlottable *plottable, int dataIndex)
   QString message = QString("Clicked on graph '%1' at data point #%2 with value %3.").arg(plottable->name()).arg(dataIndex).arg(dataValue);
   ui->statusBar->showMessage(message, 2500);
 }
-
-
 
 
 void MainWindow::on_actionAbout_triggered()

@@ -75,6 +75,8 @@
     </property>
     <addaction name="actionOpen"/>
     <addaction name="separator"/>
+    <addaction name="actionPrint"/>
+    <addaction name="separator"/>
     <addaction name="actionExit"/>
    </widget>
    <widget class="QMenu" name="menuHelp">
@@ -99,6 +101,11 @@
     <string>Open...</string>
    </property>
   </action>
+    <action name="actionPrint">
+   <property name="text">
+    <string>Print...</string>
+   </property>
+  </action>
   <action name="actionExit">
    <property name="text">
     <string>Exit</string>
@@ -115,7 +122,7 @@
   <customwidget>
    <class>QCustomPlot</class>
    <extends>QWidget</extends>
-   <header>../../qcustomplot.h</header>
+   <header>./qcustomplot/qcustomplot.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

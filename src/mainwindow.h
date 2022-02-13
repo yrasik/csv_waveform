@@ -53,19 +53,18 @@ private slots:
   void moveLegend();
   void graphClicked(QCPAbstractPlottable *plottable, int dataIndex);
   
-  void slot_printer(void);
-
-private:
-  Ui::MainWindow *ui;
-
-public slots:
   // File
   void on_actionOpen_triggered();
+  void on_actionPrint_triggered();
   void on_actionExit_triggered();
 
   // Help
   void on_actionAbout_triggered();
   void on_actionUsage_triggered();
+
+private:
+  Ui::MainWindow *ui;
+
 };
 
 #endif // MAINWINDOW_H
