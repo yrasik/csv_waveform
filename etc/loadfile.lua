@@ -1,7 +1,8 @@
 --cp1251
 --[==[
 /*
- * This file is part of the "csv_waveform" distribution (https://github.com/yrasik/csv_waveform).
+ * This file is part of the "csv_waveform" distribution
+ *(https://github.com/yrasik/csv_waveform).
  * Copyright (c) 2022 Yuri Stepanenko.
  *
  * This program is free software: you can redistribute it and/or modify
