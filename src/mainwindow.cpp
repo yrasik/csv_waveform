@@ -251,11 +251,6 @@ void MainWindow::addRandomGraph()
 
   QString filter = QString::fromLocal8Bit(c_filter);
 
-/*
-  lua_getglobal(L, "x_Format_mm");
-  if( lua_type(L, -1) == LUA_TNUMBER )
-    x_Format_mm = (float)(lua_tonumberx) (L, -1, NULL);
-*/
 
   QString fileName;
   fileName = QFileDialog::getOpenFileName(this,
@@ -265,6 +260,8 @@ void MainWindow::addRandomGraph()
   if (fileName.isEmpty())
   {
     lua_close( L );
+
+
     return;
   }
 
@@ -285,14 +282,21 @@ void MainWindow::addRandomGraph()
   lua_pushstring(L, fileName.toStdString().c_str() );   /* push 1st argument */
   /* do the call (1 arguments, 2 result) */
   if (lua_pcall(L, 1, 2, 0) != 0)
+  {
     luaL_error(L, "error running function 'open()': %s", lua_tostring(L, -1));
-
+    lua_close( L );
+    return;
+  }
 
   /* retrieve result */
   if (!lua_isinteger(L, 1))
+  {
     luaL_error(L, "function 'open()' must return a integer");
+    lua_pop(L, 2);  /* pop returned value */
+    lua_close( L );
+    return;
+  }
   int result = lua_tointeger(L, 1);
-  lua_pop(L, 1);  /* pop returned value */
 
   if(result < 0)
   {
@@ -304,7 +308,6 @@ void MainWindow::addRandomGraph()
     lua_close( L );
     return;
   }
-
 
   if ( !lua_isinteger(L, 2) )
   {
@@ -321,107 +324,61 @@ void MainWindow::addRandomGraph()
   *plog << "columns_num = " << columns_num << endl;
 
 
-#if 0
-//-----------------------------------------
-  /* push functions and arguments */
-  lua_getglobal(L, "get_min_max");  /* function to be called */
-  lua_pushinteger(L, (lua_Integer)(1) /* time */);   /* push 1st argument */
-  /* do the call (1 arguments, 2 result) */
-  if (lua_pcall(L, 1, 2, 0) != 0)
-    luaL_error(L, "error running function 'get_min_max()': %s", lua_tostring(L, -1));
+  QVector<double> t, v[50];
 
-  /* retrieve result */
-  if (!lua_isnumber(L, 1))
+  for (int col = 2; col <= columns_num; col++)
   {
-    luaL_error(L, "function 'get_min_max()' must return a number");
-    lua_close( L );
-    return;
-  }
-  double time_min = lua_tonumber(L, 1);
-  lua_pop(L, 1);  /* pop returned value */
 
-  /* retrieve result */
-  if (!lua_isnumber(L, 2))
-  {
-    luaL_error(L, "function 'get_min_max()' must return a number");
-    lua_close( L );
-    return;
-  }
-  double time_max = lua_tonumber(L, 2);
-  lua_pop(L, 2);  /* pop returned value */
-
-
-
-  //-----------------------------------------
-    /* push functions and arguments */
-    lua_getglobal(L, "get_min_max");  /* function to be called */
-    lua_pushinteger(L, (lua_Integer)(2) /* Waveform[1] */);   /* push 1st argument */
-    /* do the call (1 arguments, 2 result) */
-    if (lua_pcall(L, 1, 2, 0) != 0)
-      luaL_error(L, "error running function 'get_min_max()': %s", lua_tostring(L, -1));
-
-    /* retrieve result */
-    if (!lua_isnumber(L, 1))
+    for (int i = 0; i < result; i++)
     {
-      luaL_error(L, "function 'get_min_max()' must return a number");
-      lua_close( L );
-      return;
+      /* push functions and arguments */
+      lua_getglobal(L, "get_record");  /* function to be called */
+      lua_pushinteger(L, (i + 1));   /* push 1st argument */
+      lua_pushinteger(L, col);   /* push 2st argument */
+      /* do the call (1 arguments, 2 result) */
+      if (lua_pcall(L, 2, 2, 0) != 0)
+      {
+        luaL_error(L, "error running function 'get_record()': %s", lua_tostring(L, -1));
+        lua_close( L );
+        return;
+      }
+
+      /* retrieve result */
+      if (!lua_isnumber(L, 1))
+      {
+        luaL_error(L, "function 'get_record()' must return a number");
+        lua_pop(L, 2);  /* pop returned value */
+        lua_close( L );
+        return;
+      }
+      t.append(lua_tonumber(L, 1));
+
+      if (!lua_isnumber(L, 2))
+      {
+        luaL_error(L, "function 'get_record()' must return a number");
+        lua_pop(L, 2);  /* pop returned value */
+        lua_close( L );
+        return;
+      }
+      v[col].append(lua_tonumber(L, 2));
+      lua_pop(L, 2);  /* pop returned value */
     }
-    double Waveform_1_min = lua_tonumber(L, 1);
-    lua_pop(L, 1);  /* pop returned value */
 
-    /* retrieve result */
-    if (!lua_isnumber(L, 2))
-    {
-      luaL_error(L, "function 'get_min_max()' must return a number");
-      lua_close( L );
-      return;
-    }
-    double Waveform_1_max = lua_tonumber(L, 2);
-    lua_pop(L, 2);  /* pop returned value */
-
-#endif
-
-
-
-
-
-
-  QVector<double> t, v1;
-  for (int i = 0; i < result; i++)
-  {
-    /* push functions and arguments */
-    lua_getglobal(L, "get_record");  /* function to be called */
-    lua_pushinteger(L, (i + 1));   /* push 1st argument */
-    /* do the call (1 arguments, 2 result) */
-    if (lua_pcall(L, 1, 2, 0) != 0)
-      luaL_error(L, "error running function 'get_record()': %s", lua_tostring(L, -1));
-
-    /* retrieve result */
-    if (!lua_isnumber(L, 1))
-      luaL_error(L, "function 'get_record()' must return a number");
-    t.append(lua_tonumber(L, 1));
-    lua_pop(L, 1);  /* pop returned value */
-
-    if (!lua_isnumber(L, 2))
-      luaL_error(L, "function 'get_record()' must return a number");
-    v1.append(lua_tonumber(L, 2));
-    lua_pop(L, 2);  /* pop returned value */
+    ui->customPlot->addGraph();
+    ui->customPlot->graph()->setName(QString("New graph %1").arg(ui->customPlot->graphCount()-1));
+    ui->customPlot->graph()->setData(t, v[col]);
+    //ui->customPlot->graph()->rescaleAxes();
+    //ui->customPlot->graph()->setLineStyle((QCPGraph::LineStyle)(std::rand()%5+1));
+    if (std::rand()%100 > 50)
+      ui->customPlot->graph()->setScatterStyle(QCPScatterStyle((QCPScatterStyle::ScatterShape)(std::rand()%14+1)));
+    QPen graphPen;
+    graphPen.setColor(QColor(std::rand()%245+10, std::rand()%245+10, std::rand()%245+10));
+    graphPen.setWidthF(std::rand()/(double)RAND_MAX*2+1);
+    ui->customPlot->graph()->setPen(graphPen);
   }
+  lua_close( L );
 
-
-
-  ui->customPlot->addGraph();
-  ui->customPlot->graph()->setName(QString("New graph %1").arg(ui->customPlot->graphCount()-1));
-  ui->customPlot->graph()->setData(t, v1);
-  ui->customPlot->graph()->rescaleAxes();
- // ui->customPlot->graph()->setLineStyle((QCPGraph::LineStyle)(std::rand()%5+1));
-  if (std::rand()%100 > 50)
-    ui->customPlot->graph()->setScatterStyle(QCPScatterStyle((QCPScatterStyle::ScatterShape)(std::rand()%14+1)));
-  QPen graphPen;
-  graphPen.setColor(QColor(std::rand()%245+10, std::rand()%245+10, std::rand()%245+10));
-  graphPen.setWidthF(std::rand()/(double)RAND_MAX*2+1);
-  ui->customPlot->graph()->setPen(graphPen);
+  ui->customPlot->rescaleAxes();
   ui->customPlot->replot();
 }
 
@@ -460,7 +417,7 @@ void MainWindow::contextMenuRequest(QPoint pos)
     menu->addAction("Move to bottom left", this, SLOT(moveLegend()))->setData((int)(Qt::AlignBottom|Qt::AlignLeft));
   } else  // general context menu on graphs requested
   {
-    menu->addAction("Add random graph", this, SLOT(addRandomGraph()));
+    menu->addAction("Add graph", this, SLOT(addRandomGraph()));
     if (ui->customPlot->selectedGraphs().size() > 0)
       menu->addAction("Remove selected graph", this, SLOT(removeSelectedGraph()));
     if (ui->customPlot->graphCount() > 0)
