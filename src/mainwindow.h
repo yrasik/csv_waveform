@@ -53,6 +53,7 @@ private slots:
   void moveLegend();
   void graphClicked(QCPAbstractPlottable *plottable, int dataIndex);
   
+public slots:
   // File
   void on_actionOpen_triggered();
   void on_actionPrint_triggered();

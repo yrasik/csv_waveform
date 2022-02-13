@@ -51,14 +51,6 @@ MainWindow::MainWindow(QWidget *parent) :
   ui->customPlot->legend->setSelectedFont(legendFont);
   ui->customPlot->legend->setSelectableParts(QCPLegend::spItems); // legend box shall not be selectable, only legend items
 
-  /*
-  addRandomGraph();
-  addRandomGraph();
-  addRandomGraph();
-  addRandomGraph();
-  ui->customPlot->rescaleAxes();
-  */
-
   // connect slot that ties some axis selections together (especially opposite axes):
   connect(ui->customPlot, SIGNAL(selectionChangedByUser()), this, SLOT(selectionChanged()));
   // connect slots that takes care that when an axis is selected, only that direction can be dragged and zoomed:
@@ -87,29 +79,11 @@ MainWindow::MainWindow(QWidget *parent) :
 
 }
 
+
 MainWindow::~MainWindow()
 {
   delete ui;
 }
-
-void MainWindow::on_actionPrint_triggered(void)
-{
-  QPrinter printer;
-
-  QPrintDialog printDialog(&printer, this);
-  printDialog.setWindowTitle(tr("Print Document"));
-
-  if (printDialog.exec() != QDialog::Accepted)
-    return;
-
-  QPixmap pixmap = QPixmap::grabWidget(ui->customPlot, 0, 0, -1, -1);
-  QPainter painter;
-  painter.begin(&printer);
-  painter.drawImage(0, 0, pixmap.toImage());
-  painter.end();
-
-}
-
 
 
 void MainWindow::titleDoubleClick(QMouseEvent* event)
@@ -128,6 +102,7 @@ void MainWindow::titleDoubleClick(QMouseEvent* event)
   }
 }
 
+
 void MainWindow::axisLabelDoubleClick(QCPAxis *axis, QCPAxis::SelectablePart part)
 {
   // Set an axis label by double clicking on it
@@ -142,6 +117,7 @@ void MainWindow::axisLabelDoubleClick(QCPAxis *axis, QCPAxis::SelectablePart par
     }
   }
 }
+
 
 void MainWindow::legendDoubleClick(QCPLegend *legend, QCPAbstractLegendItem *item)
 {
@@ -159,6 +135,7 @@ void MainWindow::legendDoubleClick(QCPLegend *legend, QCPAbstractLegendItem *ite
     }
   }
 }
+
 
 void MainWindow::selectionChanged()
 {
@@ -203,6 +180,7 @@ void MainWindow::selectionChanged()
   }
 }
 
+
 void MainWindow::mousePress()
 {
   // if an axis is selected, only allow the direction of that axis to be dragged
@@ -216,6 +194,7 @@ void MainWindow::mousePress()
     ui->customPlot->axisRect()->setRangeDrag(Qt::Horizontal|Qt::Vertical);
 }
 
+
 void MainWindow::mouseWheel()
 {
   // if an axis is selected, only allow the direction of that axis to be zoomed
@@ -228,6 +207,7 @@ void MainWindow::mouseWheel()
   else
     ui->customPlot->axisRect()->setRangeZoom(Qt::Horizontal|Qt::Vertical);
 }
+
 
 void MainWindow::addRandomGraph()
 {
@@ -400,6 +380,60 @@ void MainWindow::addRandomGraph()
 void MainWindow::on_actionOpen_triggered()
 {
   addRandomGraph();
+}
+
+
+void MainWindow::on_actionPrint_triggered(void)
+{
+  QPrinter printer;
+
+  double Form_x = this->width();
+  double Form_y = this->height();
+
+  double new_Form_x;
+  double new_Form_y;
+
+  double x = ui->customPlot->width();
+  double y = ui->customPlot->height();
+
+  double dx = Form_x - x;
+  double dy = Form_y - y;
+
+  if (x > y)
+  {
+    y = 0.707 * x;
+    new_Form_x = Form_x;
+    new_Form_y = y + dy;
+  }
+  else
+  {
+    x = 0.707 * y;
+    new_Form_x = x + dx;
+    new_Form_y = Form_y;
+  }
+
+  // Для стандартного бумажного листа с соотношением сторон 0.707
+  this->resize(new_Form_x, new_Form_y);
+
+  QPrintDialog printDialog(&printer, this);
+  printDialog.setWindowTitle(tr("Print Document"));
+
+  if (printDialog.exec() != QDialog::Accepted)
+    return;
+
+  printer.setOrientation(QPrinter::Landscape); //Ориентация альбомная
+
+
+  QPainter painter;
+  painter.begin(&printer);
+  double xscale = printer.pageRect().width()/double(ui->customPlot->width());
+  double yscale = printer.pageRect().height()/double(ui->customPlot->height());
+  double scale = qMin(xscale, yscale);
+  painter.scale(scale, scale);
+  ui->customPlot->render(&painter);
+  painter.end();
+
+  this->resize(Form_x, Form_y);
 }
 
 

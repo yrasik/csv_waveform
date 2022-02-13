@@ -101,7 +101,7 @@
     <string>Open...</string>
    </property>
   </action>
-    <action name="actionPrint">
+  <action name="actionPrint">
    <property name="text">
     <string>Print...</string>
    </property>
@@ -116,13 +116,18 @@
     <string>Usage</string>
    </property>
   </action>
+  <action name="actionPPP">
+   <property name="text">
+    <string>PPP</string>
+   </property>
+  </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <customwidgets>
   <customwidget>
    <class>QCustomPlot</class>
    <extends>QWidget</extends>
-   <header>./qcustomplot/qcustomplot.h</header>
+   <header>../../qcustomplot.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>
