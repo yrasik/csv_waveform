@@ -40,21 +40,6 @@ local function trim(instr)
 end
 
 
-
-
-
-function file_supported()
-  return "Comma-Separated Values (*.csv);;\
-          Delimiter-Separated Values (*.dsv);;\
-          Tab Separated Values (*.tsv);;\
-          Lua Table (*.lua)"
-end
-
-
-records = {} -- Глобальный массив для waveform
-statist = {}
-
-
 local function min_max(array)
   local min = 0
   local max = 0
@@ -97,7 +82,7 @@ end
 
 
 
-local function open_csv(file_name, flog)
+local function open_csv(file_name, flog, records)
   local fin = io.open(file_name,"r");
   if ( fin == nil ) then
     local err = 'ERROR: Open file'
@@ -159,13 +144,21 @@ local function open_csv(file_name, flog)
     ::continue::
   end
   fin:close()
-  return 0, #records, #records[1]
+  return #records, #(records[1])
 end
 
 
-
-
 ------------------------ Global Functions ---------------------------
+records = {} -- Глобальный массив для waveform
+
+
+function file_supported()
+  return "Comma-Separated Values (*.csv);;\
+          Delimiter-Separated Values (*.dsv);;\
+          Tab Separated Values (*.tsv);;\
+          Lua Table (*.lua)"
+end
+
 
 function open(full_file_name)
   local flog = io.open("../log/lua.log","w");
@@ -193,7 +186,14 @@ function open(full_file_name)
   ext = string.lower(ext)
 
   if (ext == 'csv') then
-    return open_csv(full_file_name, flog)
+    local ret_int, ret_str = open_csv(full_file_name, flog, records)
+    if (ret_int < 0) then
+      flog:write(ret_str..'\n')
+      flog:close()
+      return ret_int, ret_str
+    end
+    flog:close()
+    return ret_int, ret_str
   elseif (ext == 'dsv') then
     local err = 'ERROR: File extention is unknown'
     flog:write(err..'\n')
@@ -218,17 +218,17 @@ function get_record(num)
 end
 
 
-local function min_max1(array)
+function get_min_max(column_num)
   local min = 0
   local max = 0
   
-  for i = 1, #array do
-    if (array[i] > max) then
-      max = array[i]
+  for i = 1, #records do
+    if (records[i][column_num] > max) then
+      max = records[i][column_num]
     end
   
-    if (array[i] < min) then
-      min = array[i]
+    if (records[i][column_num] < min) then
+      min = records[i][column_num]
     end
   end
   

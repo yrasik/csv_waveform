@@ -217,6 +217,8 @@ void MainWindow::mouseWheel()
 
 void MainWindow::addRandomGraph()
 {
+  *plog << "----------" << endl;
+
   lua_State *L = luaL_newstate();
   luaL_openlibs( L );
 
@@ -232,6 +234,8 @@ void MainWindow::addRandomGraph()
   }
   lua_pcall(L, 0, 0, 0);
 
+
+//-------------------------------------------------------
   /* push functions and arguments */
   lua_getglobal(L, "file_supported");  /* function to be called */
 
@@ -274,59 +278,135 @@ void MainWindow::addRandomGraph()
     }
 */
 *plog << fileName << endl;
+
+//----------------------------------------------
   /* push functions and arguments */
   lua_getglobal(L, "open");  /* function to be called */
   lua_pushstring(L, fileName.toStdString().c_str() );   /* push 1st argument */
   /* do the call (1 arguments, 2 result) */
   if (lua_pcall(L, 1, 2, 0) != 0)
-    luaL_error(L, "error running function `f': %s", lua_tostring(L, -1));
+    luaL_error(L, "error running function 'open()': %s", lua_tostring(L, -1));
 
 
   /* retrieve result */
   if (!lua_isinteger(L, 1))
-    luaL_error(L, "function `f' must return a integer");
+    luaL_error(L, "function 'open()' must return a integer");
   int result = lua_tointeger(L, 1);
+  lua_pop(L, 1);  /* pop returned value */
 
   if(result < 0)
   {
     /* retrieve result */
-    if (!lua_isstring(L, 2))
-      luaL_error(L, "function `f' must return a number");
+    if ( !lua_isstring(L, 2) )
+      luaL_error(L, "function 'open()' must return a number");
    // const char *c_filter = lua_tostring(L, -1);
     lua_pop(L, 2);  /* pop returned value */
     lua_close( L );
     return;
   }
 
-  if (!lua_isinteger(L, 2))
-    luaL_error(L, "function `f' must return a integer");
-  int size = lua_tointeger(L, 2);
+
+  if ( !lua_isinteger(L, 2) )
+  {
+    luaL_error(L, "function 'open()' must return a integer");
+    lua_pop(L, 2);  /* pop returned value */
+    lua_close( L );
+    return;
+  }
+
+  int columns_num = lua_tointeger(L, 2);
   lua_pop(L, 2);  /* pop returned value */
 
-*plog << size << endl;
+  *plog << "size = " << result << endl;
+  *plog << "columns_num = " << columns_num << endl;
+
+
+#if 0
+//-----------------------------------------
+  /* push functions and arguments */
+  lua_getglobal(L, "get_min_max");  /* function to be called */
+  lua_pushinteger(L, (lua_Integer)(1) /* time */);   /* push 1st argument */
+  /* do the call (1 arguments, 2 result) */
+  if (lua_pcall(L, 1, 2, 0) != 0)
+    luaL_error(L, "error running function 'get_min_max()': %s", lua_tostring(L, -1));
+
+  /* retrieve result */
+  if (!lua_isnumber(L, 1))
+  {
+    luaL_error(L, "function 'get_min_max()' must return a number");
+    lua_close( L );
+    return;
+  }
+  double time_min = lua_tonumber(L, 1);
+  lua_pop(L, 1);  /* pop returned value */
+
+  /* retrieve result */
+  if (!lua_isnumber(L, 2))
+  {
+    luaL_error(L, "function 'get_min_max()' must return a number");
+    lua_close( L );
+    return;
+  }
+  double time_max = lua_tonumber(L, 2);
+  lua_pop(L, 2);  /* pop returned value */
+
+
+
+  //-----------------------------------------
+    /* push functions and arguments */
+    lua_getglobal(L, "get_min_max");  /* function to be called */
+    lua_pushinteger(L, (lua_Integer)(2) /* Waveform[1] */);   /* push 1st argument */
+    /* do the call (1 arguments, 2 result) */
+    if (lua_pcall(L, 1, 2, 0) != 0)
+      luaL_error(L, "error running function 'get_min_max()': %s", lua_tostring(L, -1));
+
+    /* retrieve result */
+    if (!lua_isnumber(L, 1))
+    {
+      luaL_error(L, "function 'get_min_max()' must return a number");
+      lua_close( L );
+      return;
+    }
+    double Waveform_1_min = lua_tonumber(L, 1);
+    lua_pop(L, 1);  /* pop returned value */
+
+    /* retrieve result */
+    if (!lua_isnumber(L, 2))
+    {
+      luaL_error(L, "function 'get_min_max()' must return a number");
+      lua_close( L );
+      return;
+    }
+    double Waveform_1_max = lua_tonumber(L, 2);
+    lua_pop(L, 2);  /* pop returned value */
+
+#endif
+
+
+
+
+
 
   QVector<double> t, v1;
-  for (int i = 0; i < size; i++)
+  for (int i = 0; i < result; i++)
   {
     /* push functions and arguments */
     lua_getglobal(L, "get_record");  /* function to be called */
     lua_pushinteger(L, (i + 1));   /* push 1st argument */
     /* do the call (1 arguments, 2 result) */
     if (lua_pcall(L, 1, 2, 0) != 0)
-      luaL_error(L, "error running function `f': %s", lua_tostring(L, -1));
+      luaL_error(L, "error running function 'get_record()': %s", lua_tostring(L, -1));
 
     /* retrieve result */
     if (!lua_isnumber(L, 1))
-      luaL_error(L, "function `f' must return a integer");
+      luaL_error(L, "function 'get_record()' must return a number");
     t.append(lua_tonumber(L, 1));
+    lua_pop(L, 1);  /* pop returned value */
 
     if (!lua_isnumber(L, 2))
-      luaL_error(L, "function `f' must return a integer");
+      luaL_error(L, "function 'get_record()' must return a number");
     v1.append(lua_tonumber(L, 2));
     lua_pop(L, 2);  /* pop returned value */
-
-//    x[i] = (i/(double)n-0.5)*10.0*xScale + xOffset;
-//    y[i] = (qSin(x[i]*r1*5)*qSin(qCos(x[i]*r2)*r4*3)+r3*qCos(qSin(x[i])*r4*2))*yScale + yOffset;
   }
 
 
@@ -334,6 +414,7 @@ void MainWindow::addRandomGraph()
   ui->customPlot->addGraph();
   ui->customPlot->graph()->setName(QString("New graph %1").arg(ui->customPlot->graphCount()-1));
   ui->customPlot->graph()->setData(t, v1);
+  ui->customPlot->graph()->rescaleAxes();
  // ui->customPlot->graph()->setLineStyle((QCPGraph::LineStyle)(std::rand()%5+1));
   if (std::rand()%100 > 50)
     ui->customPlot->graph()->setScatterStyle(QCPScatterStyle((QCPScatterStyle::ScatterShape)(std::rand()%14+1)));
