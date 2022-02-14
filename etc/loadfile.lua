@@ -75,7 +75,7 @@ end
 
 
 
-local function set_to_records(fields, records, columns_num)
+local function set_to_records(fields, records, columns_num, flog)
     if( (fields[1] ~= nil) and 
         (fields[2] ~= nil) and
         (fields[3] ~= nil) and
@@ -185,31 +185,9 @@ end
 
 
 
-local function open_csv(file_name, flog, records)
-  local fin = io.open(file_name,"r");
-  if ( fin == nil ) then
-    local err = 'ERROR: Open file'
-    flog:write(err..'\n')
-    return -1, err
-  end
 
-  local columns_num = 0
-  local ret
 
-  for l in fin:lines() do 
-    local fields = trim(l)
-    fields = fields:gsub('%s+', '')
-    fields = split(fields, ',')
 
-    ret = set_to_records(fields, records, columns_num)
-    if ( ret < 0 ) then
-      return -1
-    end
-    
-  end
-  fin:close()
-  return #records, #(records[1])
-end
 
 
 local function open_csv(file_name, flog, records)
@@ -227,13 +205,16 @@ local function open_csv(file_name, flog, records)
     local fields = trim(l)
     fields = fields:gsub('%s+', '')
     fields = fields:gsub('"', '')
-    fields = split(fields, ',')
+    local f = split(fields, ',')
+    if(#f < 2) then
+      goto continue
+    end
 
-    ret = set_to_records(fields, records, columns_num)
+    ret = set_to_records(f, records, columns_num, flog)
     if ( ret < 0 ) then
       return -1
     end
-    
+    ::continue::    
   end
   fin:close()
   return #records, #(records[1])
@@ -255,13 +236,16 @@ local function open_dsv(file_name, flog, records)
     local fields = trim(l)
     fields = fields:gsub('%s+', '')
     fields = fields:gsub('"', '')
-    fields = split(fields, ',')
+    local f = split(fields, ',')
+    if(#f < 2) then
+      goto continue
+    end
 
-    ret = set_to_records(fields, records, columns_num)
+    ret = set_to_records(f, records, columns_num, flog)
     if ( ret < 0 ) then
       return -1
     end
-    
+    ::continue::
   end
   fin:close()
   return #records, #(records[1])
@@ -281,15 +265,19 @@ local function open_tsv(file_name, flog, records)
 
   for l in fin:lines() do 
     local fields = trim(l)
-    fields = fields:gsub('%s+', ',')
+    fields = fields:gsub('%s+', ', ')
     fields = fields:gsub('"', '')
-    fields = split(fields, ',')
-
-    ret = set_to_records(fields, records, columns_num)
-    if ( ret < 0 ) then
-      return -1
+    local f = split(fields, ',')
+    if(#f < 2) then
+      goto continue
     end
     
+    ret = set_to_records(f, records, columns_num, flog)
+    if ( ret < 0 ) then
+      flog:write(ret..' --------------------\n')
+      return -1
+    end
+    ::continue::
   end
   fin:close()
   return #records, #(records[1])

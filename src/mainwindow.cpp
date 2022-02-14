@@ -235,11 +235,20 @@ void MainWindow::addRandomGraph()
 
   /* do the call (0 arguments, 1 result) */
   if (lua_pcall(L, 0, 1, 0) != 0)
-    luaL_error(L, "error running function `f': %s", lua_tostring(L, -1));
-
+  {
+    QString err = "ERROR: running function 'file_supported()'";
+    *plog << err << endl;
+    lua_close( L );
+    return;
+  }
   /* retrieve result */
   if (!lua_isstring(L, -1))
-    luaL_error(L, "function `f' must return a number");
+  {
+    QString err = "ERROR: function 'file_supported()' must return a string";
+    *plog << err << endl;
+    lua_close( L );
+    return;
+  }
   const char *c_filter = lua_tostring(L, -1);
   lua_pop(L, 1);  /* pop returned value */
 
@@ -253,22 +262,13 @@ void MainWindow::addRandomGraph()
 
   if (fileName.isEmpty())
   {
+    QString err = "ERROR: File name is empty";
+    *plog << err << endl;
     lua_close( L );
-
-
     return;
   }
 
-/*
-    QFile file(fileName);
-    if ( !file.open(QIODevice::ReadOnly))
-    {
-       QMessageBox::information(this, tr("Unable to open file"),
-       file.errorString());
-       return;
-    }
-*/
-*plog << fileName << endl;
+  *plog << fileName << endl;
 
 //----------------------------------------------
   /* push functions and arguments */
@@ -277,16 +277,17 @@ void MainWindow::addRandomGraph()
   /* do the call (1 arguments, 2 result) */
   if (lua_pcall(L, 1, 2, 0) != 0)
   {
-    luaL_error(L, "error running function 'open()': %s", lua_tostring(L, -1));
+    QString err = "ERROR: running function 'open()'";
+    *plog << err << endl;
     lua_close( L );
     return;
   }
 
   /* retrieve result */
   if (!lua_isinteger(L, 1))
-  {
-    luaL_error(L, "function 'open()' must return a integer");
-    lua_pop(L, 2);  /* pop returned value */
+  {    
+    QString err = "ERROR: function 'open()' must return first argument is integer'";
+    *plog << err << endl;
     lua_close( L );
     return;
   }
@@ -294,19 +295,16 @@ void MainWindow::addRandomGraph()
 
   if(result < 0)
   {
-    /* retrieve result */
-    if ( !lua_isstring(L, 2) )
-      luaL_error(L, "function 'open()' must return a number");
-   // const char *c_filter = lua_tostring(L, -1);
-    lua_pop(L, 2);  /* pop returned value */
+    QString err = "ERROR: function 'open()' return first argument value '"+ QString(result) + "' < 0";
+    *plog << err << endl;
     lua_close( L );
     return;
   }
 
   if ( !lua_isinteger(L, 2) )
   {
-    luaL_error(L, "function 'open()' must return a integer");
-    lua_pop(L, 2);  /* pop returned value */
+    QString err = "ERROR: function 'open()' must return second argument is integer";
+    *plog << err << endl;
     lua_close( L );
     return;
   }
@@ -317,12 +315,18 @@ void MainWindow::addRandomGraph()
   *plog << "size = " << result << endl;
   *plog << "columns_num = " << columns_num << endl;
 
+  if ( columns_num < 2 )
+  {
+    QString err = "ERROR: function 'open()' return second argument value '"+ QString(columns_num) + "' < 2";
+    *plog << err << endl;
+    return;
+  }
+
 
   QVector<double> t, v[50];
 
   for (int col = 2; col <= columns_num; col++)
   {
-
     for (int i = 0; i < result; i++)
     {
       /* push functions and arguments */
@@ -332,7 +336,8 @@ void MainWindow::addRandomGraph()
       /* do the call (1 arguments, 2 result) */
       if (lua_pcall(L, 2, 2, 0) != 0)
       {
-        luaL_error(L, "error running function 'get_record()': %s", lua_tostring(L, -1));
+        QString err = "ERROR: running function 'get_record()'";
+        *plog << err << endl;
         lua_close( L );
         return;
       }
@@ -340,17 +345,17 @@ void MainWindow::addRandomGraph()
       /* retrieve result */
       if (!lua_isnumber(L, 1))
       {
-        luaL_error(L, "function 'get_record()' must return a number");
-        lua_pop(L, 2);  /* pop returned value */
+        QString err = "ERROR: function 'get_record()' must return first argument is number";
+        *plog << err << endl;
         lua_close( L );
         return;
       }
-      t.append(lua_tonumber(L, 1));
 
+      t.append(lua_tonumber(L, 1));
       if (!lua_isnumber(L, 2))
       {
-        luaL_error(L, "function 'get_record()' must return a number");
-        lua_pop(L, 2);  /* pop returned value */
+        QString err = "ERROR: function 'get_record()' must return second argument is number";
+        *plog << err << endl;
         lua_close( L );
         return;
       }
