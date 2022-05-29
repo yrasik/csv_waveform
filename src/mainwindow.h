@@ -65,7 +65,7 @@ public slots:
 
 private:
   Ui::MainWindow *ui;
-
+  QString work_dir;
 };
 
 #endif // MAINWINDOW_H

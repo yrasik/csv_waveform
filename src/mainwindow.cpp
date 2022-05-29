@@ -29,6 +29,8 @@ MainWindow::MainWindow(QWidget *parent) :
   QMainWindow(parent),
   ui(new Ui::MainWindow)
 {
+  work_dir = "../trash/*";
+
   std::srand(QDateTime::currentDateTime().toMSecsSinceEpoch()/1000.0);
   ui->setupUi(this);
   
@@ -257,7 +259,7 @@ void MainWindow::addRandomGraph()
 
   QString fileName;
   fileName = QFileDialog::getOpenFileName(this,
-     tr("Open Waveform"), "../trash/*", filter);
+     tr("Open Waveform"), work_dir, filter);
 
 
   if (fileName.isEmpty())
@@ -269,6 +271,11 @@ void MainWindow::addRandomGraph()
   }
 
   *plog << fileName << endl;
+
+  QFileInfo fi(fileName);
+  work_dir = fi.absolutePath();
+
+
 
 //----------------------------------------------
   /* push functions and arguments */
