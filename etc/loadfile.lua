@@ -20,6 +20,72 @@
 ]==]
 
 
+local wav = require("wav") 
+
+
+local function initialize_wave (file_name, flog, records)
+  local reader = wav.create_context(file_name, "r")
+  if ( reader == nil ) then
+    return -1
+  end
+
+  flog:write("Filename: " .. reader.get_filename()..'\n')
+  flog:write("Mode: " .. reader.get_mode()..'\n')
+  flog:write("File size: " .. reader.get_file_size()..'\n')
+  flog:write("Channels: " .. reader.get_channels_number()..'\n')
+  flog:write("Sample rate: " .. reader.get_sample_rate()..'\n')
+  flog:write("Byte rate: " .. reader.get_byte_rate()..'\n')
+  flog:write("Block align: " .. reader.get_block_align()..'\n')
+  flog:write("Bitdepth: " .. reader.get_bits_per_sample()..'\n')
+  flog:write("Samples per channel: " .. reader.get_samples_per_channel()..'\n')
+  flog:write("Sample at 500ms: " .. reader.get_sample_from_ms(500)..'\n')
+  flog:write("Milliseconds from 3rd sample: " .. reader.get_ms_from_sample(3)..'\n')
+  flog:write(string.format("Min- & maximal amplitude: %d <-> %d", reader.get_min_max_amplitude())..'\n')
+ -- reader.set_position(256)
+ -- flog:write("Sample 256, channel 2: " .. reader.get_samples(1)[2][1])
+
+  -- Get first frequencies
+  reader.set_position(0)
+  
+  flog:write("--->"..'\n')
+
+  local timestep_ms = reader.get_ms_from_sample(4) - reader.get_ms_from_sample(3)
+  flog:write('timestep_ms = '..timestep_ms..'\n')
+
+  local time = 0
+  local timestep_s = timestep_ms * 10^-3
+  
+  if ( reader.get_channels_number() == 1) then
+    local sample
+    local size = reader.get_samples_per_channel()
+    for i = 1, size do
+      sample = reader.get_samples(1)[1]
+      records[#records + 1] = {time, sample[1]}
+      time = time + timestep_s
+    end
+  elseif ( reader.get_channels_number() == 2) then
+    local sampleL
+    local sampleR
+    local size = reader.get_samples_per_channel() - 2
+    --flog:write(string.format('size = %d\n', size))
+    for i = 1, size do
+      reader.set_position(i)
+      sampleL = reader.get_samples(1)[1]
+      reader.set_position(i)
+      sampleR = reader.get_samples(1)[2]
+      records[#records + 1] = {time, sampleL[1], sampleR[1]}
+      time = time + timestep_s
+      --flog:write(string.format('\ntime = %f, i = %d\n', time, i))
+      --flog:write(string.format('L = %f, R = %f\n', sampleL[1], sampleR[1]))
+    end
+  else
+    return -2
+  end
+
+  return 0
+end
+
+
 local function split(instr, sep)
   local t = {}
   for str in string.gmatch(instr, "([^"..sep.."]+)") do
@@ -182,12 +248,49 @@ local function set_to_records(fields, records, columns_num, flog)
 end
 
 
+local function open_wav(file_name, flog, records)
+  local ret = initialize_wave(file_name, flog, records)
+  if ( ret < 0 ) then
+    local err = 'ERROR: Open file'
+    flog:write(err..'\n')
+    return -1, err
+  end
+
+  return #records, #(records[1])
+end
 
 
+local function open_dat(file_name, flog, records)
+  local fin = io.open(file_name, "r");
+  if ( fin == nil ) then
+    local err = 'ERROR: Open file'
+    flog:write(err..'\n')
+    return -1, err
+  end
 
+  local columns_num = 0
+  local ret
 
+  for l in fin:lines() do 
+    local fields = trim(l)
+    fields = fields:gsub('%s+', ' ')
+    fields = fields:gsub(' ', ',')
+    fields = fields:gsub('"', '')
+    --flog:write(fields)
+    local f = split(fields, ',')
+    if(#f < 2) then
+      goto continue
+    end
 
-
+    ret = set_to_records(f, records, columns_num, flog)
+    if ( ret < 0 ) then
+      return -1
+    end
+    ::continue::    
+  end
+  fin:close()
+  return #records, #(records[1])
+end
 
 
 local function open_csv(file_name, flog, records)
@@ -291,6 +394,8 @@ function file_supported()
   return "Comma-Separated Values (*.csv);;\
           Delimiter-Separated Values (*.dsv);;\
           Tab Separated Values (*.tsv);;\
+          Gnuplot - like file (*.dat);;\
+          Audio wave file (*.wav);;\
           Lua Table (*.lua)"
 end
 
@@ -300,7 +405,6 @@ function open(full_file_name)
   if ( flog == nil ) then
     return -1, 'ERROR: Open log file'
   end
-
 
   if (type(full_file_name) ~= 'string' ) then
     local err = 'ERROR: File name is empty'
@@ -347,6 +451,26 @@ function open(full_file_name)
     end
     flog:close()
     return ret_int, ret_str
+  elseif (ext == 'dat') then
+    local ret_int, ret_str = open_dat(full_file_name, flog, records)
+    if (ret_int < 0) then
+      flog:write(ret_str..'\n')
+      flog:close()
+      return ret_int, ret_str
+    end
+    flog:close()
+    return ret_int, ret_str    
+  elseif (ext == 'wav') then
+    flog:write('==============\n')
+    local ret_int, ret_str = open_wav(full_file_name, flog, records)
+    if (ret_int < 0) then
+      flog:write(ret_str..'\n')
+      flog:close()
+      return ret_int, ret_str
+    end
+    flog:close()
+    return ret_int, ret_str 
+
   else
     local err = 'ERROR: File extention is unknown'
     flog:write(err..'\n')
