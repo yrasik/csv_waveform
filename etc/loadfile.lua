@@ -19,6 +19,9 @@
  */
 ]==]
 
+package.path = package.path .. ';./lua/?.lua'
+--package.cpath = package.cpath .. ';my_path/?.so'
+
 
 local wav = require("wav") 
 
@@ -460,6 +463,7 @@ function open(full_file_name)
     end
     flog:close()
     return ret_int, ret_str    
+    --[[
   elseif (ext == 'wav') then
     flog:write('==============\n')
     local ret_int, ret_str = open_wav(full_file_name, flog, records)
@@ -470,7 +474,7 @@ function open(full_file_name)
     end
     flog:close()
     return ret_int, ret_str 
-
+]]
   else
     local err = 'ERROR: File extention is unknown'
     flog:write(err..'\n')
